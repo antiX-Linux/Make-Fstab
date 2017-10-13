@@ -24,8 +24,8 @@
 #-----------------------------------------------------------------------
 
              ME=$(basename $0)
-        VERSION="2.3.06"
-   VERSION_DATE="Fri Sep 29 06:43:59 MDT 2017"
+        VERSION="2.3.07"
+   VERSION_DATE="Thu Oct 12 20:58:54 MDT 2017"
 
  MAJOR_DEV_LIST="3,8,22,179,202,259"
      LSBLK_ARGS="--pairs --noheadings --output=name,fstype,label,mountpoint,parttype,type,uuid"
@@ -318,6 +318,7 @@ do_update_mode() {
         grep -q "^$dev " /proc/mounts  && vamoose "device $dev is already mounted"
 
         case $type in
+     crypto_LUKS) return 0                                            ;;
             swap) local mntpnt=swap                                   ;;
                *) local mntpnt="$(unique_mp "$dev" "$uuid" "$label")" ;;
         esac
@@ -466,7 +467,9 @@ write_hard_drive_entries() {
         done <<BLKID
 $($SUDO blkid -o udev $name)
 BLKID
-       [ "$fstype" ] || continue
+        case $fstype in
+           crypto_LUKS|"") continue ;;
+        esac
 
         if [ "$DO_ENCODE" ]; then
             uuid=$uuid_enc
